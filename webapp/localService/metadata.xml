@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml">
+    <edmx:Include Alias="Capabilities" Namespace="Org.OData.Capabilities.V1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+    <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+    <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+  </edmx:Reference>
+  <edmx:DataServices>
+    <Schema Namespace="Service" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Annotation Term="Core.Links">
+        <Collection>
+          <Record>
+            <PropertyValue Property="rel" String="author"/>
+            <PropertyValue Property="href" String="https://cap.cloud.sap"/>
+          </Record>
+        </Collection>
+      </Annotation>
+      <EntityContainer Name="EntityContainer">
+        <EntitySet Name="RootEntity" EntityType="Service.RootEntity">
+          <NavigationPropertyBinding Path="items" Target="ChildEntity"/>
+          <NavigationPropertyBinding Path="SiblingEntity" Target="RootEntity"/>
+        </EntitySet>
+        <EntitySet Name="ChildEntity" EntityType="Service.ChildEntity">
+          <NavigationPropertyBinding Path="Parent" Target="RootEntity"/>
+          <NavigationPropertyBinding Path="GrandChildEntity" Target="GrandChildEntity"/>
+        </EntitySet>
+        <EntitySet Name="GrandChildEntity" EntityType="Service.GrandChildEntity">
+          <NavigationPropertyBinding Path="Parent" Target="ChildEntity"/>
+        </EntitySet>
+        <EntitySet Name="ValueHelpEntity" EntityType="Service.ValueHelpEntity"/>
+      </EntityContainer>
+      <EntityType Name="RootEntity">
+        <Key>
+          <PropertyRef Name="ID"/>
+          <PropertyRef Name="IsActiveEntity"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="TitleProperty" Type="Edm.String"/>
+        <Property Name="DescriptionProperty" Type="Edm.String"/>
+        <Property Name="NameProperty" Type="Edm.String"/>
+        <Property Name="footer" Type="Edm.String"/>
+        <Property Name="unit" Type="Edm.String"/>
+        <Property Name="kpivalue" Type="Edm.Int32"/>
+        <Property Name="scale" Type="Edm.String"/>
+        <Property Name="color" Type="Edm.String"/>
+        <Property Name="trend" Type="Edm.String"/>
+        <NavigationProperty Name="items" Type="Collection(Service.ChildEntity)" Partner="Parent"/>
+        <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+        <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+        <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+        <NavigationProperty Name="DraftAdministrativeData" Type="Service.DraftAdministrativeData" ContainsTarget="true"/>
+        <NavigationProperty Name="SiblingEntity" Type="Service.RootEntity"/>
+      </EntityType>
+      <EntityType Name="ChildEntity">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="StringProperty" Type="Edm.String"/>
+        <Property Name="TextProperty" Type="Edm.String"/>
+        <Property Name="PropertyWithValueHelp" Type="Edm.String"/>
+        <NavigationProperty Name="Parent" Type="Service.RootEntity" Partner="items">
+          <ReferentialConstraint Property="Parent_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="Parent_ID" Type="Edm.Int32"/>
+        <NavigationProperty Name="GrandChildEntity" Type="Collection(Service.GrandChildEntity)" Partner="Parent"/>
+      </EntityType>
+      <EntityType Name="GrandChildEntity">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="StringProperty" Type="Edm.String"/>
+        <Property Name="TextProperty" Type="Edm.String"/>
+        <Property Name="PropertyWithValueHelp" Type="Edm.String"/>
+        <NavigationProperty Name="Parent" Type="Service.ChildEntity" Partner="GrandChildEntity">
+          <ReferentialConstraint Property="Parent_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="Parent_ID" Type="Edm.Int32"/>
+      </EntityType>
+      <EntityType Name="ValueHelpEntity">
+        <Key>
+          <PropertyRef Name="KeyProp"/>
+        </Key>
+        <Property Name="KeyProp" Type="Edm.String" MaxLength="1" Nullable="false"/>
+        <Property Name="Description" Type="Edm.String" MaxLength="20"/>
+      </EntityType>
+      <EntityType Name="DraftAdministrativeData">
+        <Key>
+          <PropertyRef Name="DraftUUID"/>
+        </Key>
+        <Property Name="DraftUUID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="CreationDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+        <Property Name="CreatedByUser" Type="Edm.String" MaxLength="256"/>
+        <Property Name="DraftIsCreatedByMe" Type="Edm.Boolean"/>
+        <Property Name="LastChangeDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+        <Property Name="LastChangedByUser" Type="Edm.String" MaxLength="256"/>
+        <Property Name="InProcessByUser" Type="Edm.String" MaxLength="256"/>
+        <Property Name="DraftIsProcessedByMe" Type="Edm.Boolean"/>
+      </EntityType>
+      <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+        <Parameter Name="in" Type="Service.RootEntity"/>
+        <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+        <ReturnType Type="Service.RootEntity"/>
+      </Action>
+      <Action Name="draftActivate" IsBound="true" EntitySetPath="in">
+        <Parameter Name="in" Type="Service.RootEntity"/>
+        <ReturnType Type="Service.RootEntity"/>
+      </Action>
+      <Action Name="draftEdit" IsBound="true" EntitySetPath="in">
+        <Parameter Name="in" Type="Service.RootEntity"/>
+        <Parameter Name="PreserveChanges" Type="Edm.Boolean"/>
+        <ReturnType Type="Service.RootEntity"/>
+      </Action>
+      <Annotations Target="Service.RootEntity">
+        <Annotation Term="UI.PresentationVariant">
+          <Record Type="UI.PresentationVariantType">
+            <PropertyValue Property="Visualizations">
+              <Collection>
+                <AnnotationPath>@UI.LineItem</AnnotationPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="UI.SelectionFields">
+          <Collection>
+            <PropertyPath>ID</PropertyPath>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.HeaderInfo">
+          <Record Type="UI.HeaderInfoType">
+            <PropertyValue Property="TypeName" String="Root Entity"/>
+            <PropertyValue Property="TypeNamePlural" String="Root Entities"/>
+            <PropertyValue Property="Title">
+              <Record Type="UI.DataField">
+                <PropertyValue Property="Value" Path="TitleProperty"/>
+              </Record>
+            </PropertyValue>
+            <PropertyValue Property="Description">
+              <Record Type="UI.DataField">
+                <PropertyValue Property="Value" Path="DescriptionProperty"/>
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="UI.Facets">
+          <Collection>
+            <Record Type="UI.ReferenceFacet">
+              <PropertyValue Property="Label" String="General Information"/>
+              <PropertyValue Property="Target" AnnotationPath="@UI.FieldGroup#GeneralInformation"/>
+            </Record>
+            <Record Type="UI.ReferenceFacet">
+              <PropertyValue Property="Label" String="Details"/>
+              <PropertyValue Property="Target" AnnotationPath="items/@UI.LineItem"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.FieldGroup" Qualifier="GeneralInformation">
+          <Record Type="UI.FieldGroupType">
+            <PropertyValue Property="Label" String="General Information"/>
+            <PropertyValue Property="Data">
+              <Collection>
+                <Record Type="UI.DataField">
+                  <PropertyValue Property="Value" Path="TitleProperty"/>
+                </Record>
+                <Record Type="UI.DataField">
+                  <PropertyValue Property="Value" Path="NameProperty"/>
+                </Record>
+                <Record Type="UI.DataField">
+                  <PropertyValue Property="Value" Path="DescriptionProperty"/>
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="UI.LineItem">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="ID"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="TitleProperty"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="DescriptionProperty"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="NameProperty"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="Service.EntityContainer/RootEntity">
+        <Annotation Term="UI.PresentationVariant">
+          <Record Type="UI.PresentationVariantType">
+            <PropertyValue Property="Visualizations">
+              <Collection>
+                <AnnotationPath>@UI.LineItem</AnnotationPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record Type="Capabilities.DeleteRestrictionsType">
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Common.DraftRoot">
+          <Record Type="Common.DraftRootType">
+            <PropertyValue Property="ActivationAction" String="Service.draftActivate"/>
+            <PropertyValue Property="EditAction" String="Service.draftEdit"/>
+            <PropertyValue Property="PreparationAction" String="Service.draftPrepare"/>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/ID">
+        <Annotation Term="Core.Computed" Bool="true"/>
+        <Annotation Term="Common.Label" String="Identifier"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/TitleProperty">
+        <Annotation Term="Common.Label" String="Title"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/DescriptionProperty">
+        <Annotation Term="Common.Label" String="Description"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/NameProperty">
+        <Annotation Term="Common.Label" String="Name"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/footer">
+        <Annotation Term="Common.Label" String="Quarter"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/unit">
+        <Annotation Term="Common.Label" String="Unit of Measure"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/kpivalue">
+        <Annotation Term="Common.Label" String="Value"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/scale">
+        <Annotation Term="Common.Label" String="Scale"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/color">
+        <Annotation Term="Common.Label" String="Color"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/trend">
+        <Annotation Term="Common.Label" String="Trend"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/IsActiveEntity">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/HasActiveEntity">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/HasDraftEntity">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+      </Annotations>
+      <Annotations Target="Service.RootEntity/DraftAdministrativeData">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+      </Annotations>
+      <Annotations Target="Service.ChildEntity">
+        <Annotation Term="UI.HeaderInfo">
+          <Record Type="UI.HeaderInfoType">
+            <PropertyValue Property="TypeName" String="Child Entity"/>
+            <PropertyValue Property="TypeNamePlural" String="Child Entities"/>
+            <PropertyValue Property="Title">
+              <Record Type="UI.DataField">
+                <PropertyValue Property="Value" Path="ID"/>
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="UI.Facets">
+          <Collection>
+            <Record Type="UI.ReferenceFacet">
+              <PropertyValue Property="Label" String="Details"/>
+              <PropertyValue Property="Target" AnnotationPath="@UI.Identification"/>
+              <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.Identification">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="ID"/>
+              <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.LineItem">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="ID"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="PropertyWithValueHelp"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="StringProperty"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="TextProperty"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="Service.ChildEntity/ID">
+        <Annotation Term="Common.Label" String="Item Identifier"/>
+      </Annotations>
+      <Annotations Target="Service.ChildEntity/StringProperty">
+        <Annotation Term="Common.Label" String="String"/>
+      </Annotations>
+      <Annotations Target="Service.ChildEntity/TextProperty">
+        <Annotation Term="Common.Label" String="Text"/>
+      </Annotations>
+      <Annotations Target="Service.ChildEntity/PropertyWithValueHelp">
+        <Annotation Term="Common.ValueList">
+          <Record Type="Common.ValueListType">
+            <PropertyValue Property="Label" String="Value with Value Help"/>
+            <PropertyValue Property="CollectionPath" String="ValueHelpEntity"/>
+            <PropertyValue Property="Parameters">
+              <Collection>
+                <Record Type="Common.ValueListParameterInOut">
+                  <PropertyValue Property="LocalDataProperty" PropertyPath="PropertyWithValueHelp"/>
+                  <PropertyValue Property="ValueListProperty" String="KeyProp"/>
+                </Record>
+                <Record Type="Common.ValueListParameterDisplayOnly">
+                  <PropertyValue Property="ValueListProperty" String="Description"/>
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Common.Label" String="With Value Help"/>
+      </Annotations>
+      <Annotations Target="Service.GrandChildEntity">
+        <Annotation Term="UI.HeaderInfo">
+          <Record Type="UI.HeaderInfoType">
+            <PropertyValue Property="TypeName" String="Grand Child Entity"/>
+            <PropertyValue Property="TypeNamePlural" String="Grand Child Entities"/>
+            <PropertyValue Property="Title">
+              <Record Type="UI.DataField">
+                <PropertyValue Property="Value" Path="ID"/>
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="UI.Facets">
+          <Collection>
+            <Record Type="UI.ReferenceFacet">
+              <PropertyValue Property="Label" String="Details"/>
+              <PropertyValue Property="Target" AnnotationPath="@UI.Identification"/>
+              <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.Identification">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="ID"/>
+              <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="UI.LineItem">
+          <Collection>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="ID"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="PropertyWithValueHelp"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="StringProperty"/>
+            </Record>
+            <Record Type="UI.DataField">
+              <PropertyValue Property="Value" Path="TextProperty"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="Service.GrandChildEntity/ID">
+        <Annotation Term="Common.Label" String="Item Identifier"/>
+      </Annotations>
+      <Annotations Target="Service.GrandChildEntity/StringProperty">
+        <Annotation Term="Common.Label" String="String"/>
+      </Annotations>
+      <Annotations Target="Service.GrandChildEntity/TextProperty">
+        <Annotation Term="Common.Label" String="Text"/>
+      </Annotations>
+      <Annotations Target="Service.GrandChildEntity/PropertyWithValueHelp">
+        <Annotation Term="Common.Label" String="With Value Help"/>
+      </Annotations>
+      <Annotations Target="Service.ValueHelpEntity/KeyProp">
+        <Annotation Term="Common.Label" String="Value Help Key"/>
+      </Annotations>
+      <Annotations Target="Service.ValueHelpEntity/Description">
+        <Annotation Term="Core.Immutable" Bool="true"/>
+        <Annotation Term="Common.Label" String="Value Help Description"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData">
+        <Annotation Term="Common.Label" String="{i18n>Draft_DraftAdministrativeData}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/DraftUUID">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+        <Annotation Term="Common.Label" String="{i18n>Draft_DraftUUID}"/>
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/CreationDateTime">
+        <Annotation Term="Common.Label" String="{i18n>Draft_CreationDateTime}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/CreatedByUser">
+        <Annotation Term="Common.Label" String="{i18n>Draft_CreatedByUser}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/DraftIsCreatedByMe">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+        <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsCreatedByMe}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/LastChangeDateTime">
+        <Annotation Term="Common.Label" String="{i18n>Draft_LastChangeDateTime}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/LastChangedByUser">
+        <Annotation Term="Common.Label" String="{i18n>Draft_LastChangedByUser}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/InProcessByUser">
+        <Annotation Term="Common.Label" String="{i18n>Draft_InProcessByUser}"/>
+      </Annotations>
+      <Annotations Target="Service.DraftAdministrativeData/DraftIsProcessedByMe">
+        <Annotation Term="UI.Hidden" Bool="true"/>
+        <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsProcessedByMe}"/>
+      </Annotations>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
